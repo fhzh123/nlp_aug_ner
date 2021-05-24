@@ -10,7 +10,7 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from torch.nn.utils import clip_grad_norm_
 # Import custom modules
-from dataset import CustomDataset, PadCollate
+from model.dataset import CustomDataset, PadCollate
 from utils import optimizer_select, shceduler_select
 # Import Huggingface
 from transformers import BertForSequenceClassification, AdamW
@@ -68,7 +68,6 @@ def training(args):
     model = model.to(device)
 
     # Optimizer setting
-    # optimizer = AdamW(model.parameters(), lr=args.lr, eps=1e-8)
     optimizer = optimizer_select(model, args)
     scheduler = shceduler_select(optimizer, dataloader_dict, args)
 

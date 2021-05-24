@@ -13,8 +13,8 @@ from torch.utils.data import DataLoader
 # Import HuggingFace
 from transformers import BertTokenizer
 # Import custom modules
-from dataset import CustomDataset, PadCollate
-from model import Custom_ConditionalBERT
+from model.dataset import CustomDataset, PadCollate
+from model.augmentation_model import Custom_ConditionalBERT
 from utils import encoding_text
 
 def augmenting(args):
