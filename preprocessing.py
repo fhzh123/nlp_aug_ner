@@ -1,6 +1,7 @@
 import os
 import re
 import time
+import emoji
 import pickle
 import pandas as pd
 import sentencepiece as spm
@@ -8,6 +9,23 @@ import sentencepiece as spm
 from transformers import BertTokenizer
 # Import custom modules
 from utils import encoding_text
+
+def encoding_text(list_x, tokenizer, max_len):
+
+    emojis = ''.join(emoji.UNICODE_EMOJI.keys())
+    pattern = re.compile(r'<[^>]+>')
+
+    def clean(x):
+        x = pattern.sub(' ', x)
+        x = x.strip()
+        return x
+
+    encoded_text_list = list_x.map(lambda x: tokenizer.encode(
+        clean(str(x)),
+        max_length=max_len,
+        truncation=True
+    ))
+    return encoded_text_list
 
 def preprocessing(args):
 
@@ -84,8 +102,13 @@ def preprocessing(args):
 
     print('Encoding...')
     for data in ['imdb', 'yelp', 'yahoo', 'ag_news', 'dbpedia']:
-        train['comment'] = encoding_text(train['comment'], tokenizer, args.max_len)
-        test['comment'] = encoding_text(test['comment'], tokenizer, args.max_len)
+        col_list = list(dataset_dict[data].columns)
+        col_list.remove('label')
+        for col in col_list:
+            dataset_dict[data]['train'][col] = \
+                encoding_text(dataset_dict[data]['train'][col], tokenizer, args.max_len)
+            dataset_dict[data]['test'][col] = \
+                encoding_text(dataset_dict[data]['test'][col], tokenizer, args.max_len)
 
     #===================================#
     #==============Saving===============#
@@ -94,23 +117,36 @@ def preprocessing(args):
     # 1) Print status
     print('Parsed sentence save setting...')
 
-    max_train_len = max([len(x) for x in train['comment']])
-    max_test_len = max([len(x) for x in test['comment']])
-    mean_train_len = sum([len(x) for x in train['comment']]) / len(train['comment'])
-    mean_test_len = sum([len(x) for x in test['comment']]) / len(test['comment'])
+    for data in ['imdb', 'yelp', 'yahoo', 'ag_news', 'dbpedia']:
 
-    print(f'Train data max length => comment: {max_train_len}')
-    print(f'Train data mean length => comment: {mean_train_len}')
-    print(f'Test data max length => comment: {max_test_len}')
-    print(f'Test data mean length => comment: {mean_test_len}')
+        col_list = list(dataset_dict[data].columns)
+        col_list.remove('label')
+
+        max_train_len, max_test_len = list(), list()
+        mean_train_len, mean_test_len = list(), list()
+
+        train_len = len(dataset_dict[data]['train'])
+        test_len = len(dataset_dict[data]['test'])
+
+        for col in col_list:
+            max_train_len.append(max([len(x) for x in dataset_dict[data]['train'][col]]))
+            max_test_len.append(max([len(x) for x in dataset_dict[data]['test'][col]]))
+            mean_train_len.append(sum([len(x) for x in dataset_dict[data]['train'][col]]) / train_len)
+            mean_test_len.append(sum([len(x) for x in dataset_dict[data]['test'][col]]) / test_len)
+        max_train_len = max(max_train_len)
+        max_test_len = max(max_test_len)
+        mean_train_len = sum(mean_train_len) / len(col_list)
+        mean_test_len = sum(mean_test_len) / len(col_list)
+
+        print(f'--- {data} Dataset ---')
+        print(f'Train data max length => comment: {max_train_len}')
+        print(f'Train data mean length => comment: {mean_train_len}')
+        print(f'Test data max length => comment: {max_test_len}')
+        print(f'Test data mean length => comment: {mean_test_len}')
+        print()
 
     # 2) Training pikcle saving
     with open(os.path.join(args.preprocess_path, 'processed.pkl'), 'wb') as f:
-        pickle.dump({
-            'train_comment_indices': train['comment'].tolist(),
-            'test_comment_indices': test['comment'].tolist(),
-            'train_label': train['sentiment'].tolist(),
-            'test_label': test['sentiment'].tolist()
-        }, f)
+        pickle.dump(dataset_dict, f)
 
     print(f'Done! ; {round((time.time()-start_time)/60, 3)}min spend')
