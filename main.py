@@ -35,7 +35,15 @@ if __name__=='__main__':
     parser.add_argument('--training', action='store_true')
     parser.add_argument('--resume', action='store_true')
     # Path setting
-    parser.add_argument('--data_path', default='/HDD/kyohoon/imdb_classification', type=str,
+    parser.add_argument('--imdb_data_path', default='/HDD/dataset/text_classification/imdb_classification', type=str,
+                        help='Original data path')
+    parser.add_argument('--yelp_data_path', default='/HDD/dataset/text_classification/Yelp_full', type=str,
+                        help='Original data path')
+    parser.add_argument('--yahoo_data_path', default='/HDD/dataset/text_classification/Yahoo_Answers', type=str,
+                        help='Original data path')
+    parser.add_argument('--ag_news_data_path', default='/HDD/dataset/text_classification/AG_News', type=str,
+                        help='Original data path')
+    parser.add_argument('--dbpedia_data_path', default='/HDD/dataset/text_classification/DBpedia', type=str,
                         help='Original data path')
     parser.add_argument('--preprocess_path', default='./preprocessing', type=str,
                         help='Preprocessed data  file path')
