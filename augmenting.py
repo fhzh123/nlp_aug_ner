@@ -72,7 +72,8 @@ def augmenting(args):
             old_masking_token_count = 0
             label_pop_list = list()
             augmented_tensor = torch.LongTensor([]).to(device)
-            top_3_predicted = mlm_logit[ner_masking_tensor==103].topk(3, 1)[1]
+            top_predicted = mlm_logit[ner_masking_tensor==103].topk(augment_top_k_max, 1)[1]
+            top_predicted = top_predicted[:,augment_top_k_min:augment_top_k_max]
 
             # Augmentation
             for n_i, n in enumerate(ner_masking_tensor):
@@ -85,7 +86,7 @@ def augmenting(args):
                         n_augmented = n.clone().detach()
                         masking_token_count = (n_augmented==103).sum().item()
                         for ix in (n_augmented == 103).nonzero(as_tuple=True)[0]:
-                            n_augmented[ix] = top_3_predicted[i][k]
+                            n_augmented[ix] = top_predicted[i][k]
                             i += 1
                             if i == masking_token_count + old_masking_token_count:
                                 i = old_masking_token_count

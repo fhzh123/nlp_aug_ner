@@ -57,8 +57,10 @@ if __name__=='__main__':
     parser.add_argument('--max_len', default=150, type=int, 
                         help='Maximum Length of Source Sentence; Default is 150')
     # Augmentation setting
-    parser.add_argument('--augment_top_k', default=3, type=int,
-                        help='Augmented size of NER_Masking; Default is 3')
+    parser.add_argument('--augment_top_k_max', default=20, type=int,
+                        help='Max augmented size of NER_Masking; Default is 20')
+    parser.add_argument('--augment_top_k_mim', default=10, type=int,
+                        help='Max augmented size of NER_Masking; Default is 20')
     # Training setting
     parser.add_argument('--augmentation_data_training', action='store_true')
     parser.add_argument('--num_epochs', default=10, type=int, 
