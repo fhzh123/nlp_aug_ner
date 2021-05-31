@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from torch.nn.utils import clip_grad_norm_
 # Import custom modules
 from model.dataset import CustomDataset, PadCollate
-from utils import optimizer_select, shceduler_select
+from optimizer.utils import optimizer_select, shceduler_select
 # Import Huggingface
 from transformers import BertForSequenceClassification, AdamW
 

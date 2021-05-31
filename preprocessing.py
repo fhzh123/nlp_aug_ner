@@ -3,12 +3,13 @@ import re
 import time
 import emoji
 import pickle
+import logging
 import pandas as pd
 import sentencepiece as spm
 # Import Huggingface
 from transformers import BertTokenizer
 # Import custom modules
-from utils import encoding_text
+from utils import encoding_text, TqdmLoggingHandler, write_log
 
 def encoding_text(list_x, tokenizer, max_len):
 
@@ -31,7 +32,18 @@ def preprocessing(args):
 
     start_time = time.time()
 
-    print('Start preprocessing!')
+    #===================================#
+    #==============Logging==============#
+    #===================================#
+
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    handler = TqdmLoggingHandler()
+    handler.setFormatter(logging.Formatter(" %(asctime)s - %(message)s", "%Y-%m-%d %H:%M:%S"))
+    logger.addHandler(handler)
+    logger.propagate = False
+
+    write_log(logger, 'Start preprocessing!')
 
     #===================================#
     #=============Data Load=============#
@@ -42,14 +54,16 @@ def preprocessing(args):
     # 1-1) IMDB data open
     dataset_dict['imdb'] = {
         'train': pd.read_csv(os.path.join(args.imdb_data_path, 'train.csv'),
-            names=['label', 'comment']).replace({
-                'sentiment': {'positive': 0, 'negative': 1}
-            }, inplace=True),
+            names=['label', 'comment']),
         'test': pd.read_csv(os.path.join(args.imdb_data_path, 'test.csv'),
-            names=['label', 'comment']).replace({
-                'sentiment': {'positive': 0, 'negative': 1}
-            }, inplace=True))
+            names=['label', 'comment'])
     }
+    dataset_dict['imdb']['train'].replace({
+                'sentiment': {'positive': 0, 'negative': 1}
+            }, inplace=True)
+    dataset_dict['imdb']['test'].replace({
+                'sentiment': {'positive': 0, 'negative': 1}
+            }, inplace=True)
 
     # 1-2) Yelp data open
     dataset_dict['yelp'] = {
@@ -91,7 +105,7 @@ def preprocessing(args):
     #=============Tokenizer=============#
     #===================================#
 
-    print('Tokenizer setting...')
+    write_log(logger, 'Tokenizer setting...')
 
     # 1) Tokenizer open
     tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
@@ -100,9 +114,9 @@ def preprocessing(args):
     #=============Encoding==============#
     #===================================#
 
-    print('Encoding...')
     for data in ['imdb', 'yelp', 'yahoo', 'ag_news', 'dbpedia']:
-        col_list = list(dataset_dict[data].columns)
+        write_log(logger, f'Encoding {data}...')
+        col_list = list(dataset_dict[data]['train'].columns)
         col_list.remove('label')
         for col in col_list:
             dataset_dict[data]['train'][col] = \
@@ -115,11 +129,11 @@ def preprocessing(args):
     #===================================#
 
     # 1) Print status
-    print('Parsed sentence save setting...')
+    write_log(logger, 'Parsed sentence save setting...')
 
     for data in ['imdb', 'yelp', 'yahoo', 'ag_news', 'dbpedia']:
 
-        col_list = list(dataset_dict[data].columns)
+        col_list = list(dataset_dict[data]['train'].columns)
         col_list.remove('label')
 
         max_train_len, max_test_len = list(), list()
@@ -146,7 +160,7 @@ def preprocessing(args):
         print()
 
     # 2) Training pikcle saving
-    with open(os.path.join(args.preprocess_path, 'processed.pkl'), 'wb') as f:
+    with open(os.path.join(args.preprocess_path, 'augmented_processed.pkl'), 'wb') as f:
         pickle.dump(dataset_dict, f)
 
-    print(f'Done! ; {round((time.time()-start_time)/60, 3)}min spend')
+    write_log(logger, f'Done! ; {round((time.time()-start_time)/60, 3)}min spend')
