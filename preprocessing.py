@@ -53,10 +53,8 @@ def preprocessing(args):
 
     # 1-1) IMDB data open
     dataset_dict['imdb'] = {
-        'train': pd.read_csv(os.path.join(args.imdb_data_path, 'train.csv'),
-            names=['label', 'comment']),
-        'test': pd.read_csv(os.path.join(args.imdb_data_path, 'test.csv'),
-            names=['label', 'comment'])
+        'train': pd.read_csv(os.path.join(args.imdb_data_path, 'train.csv')),
+        'test': pd.read_csv(os.path.join(args.imdb_data_path, 'test.csv'))
     }
     dataset_dict['imdb']['train'].replace({
                 'sentiment': {'positive': 0, 'negative': 1}
@@ -64,6 +62,8 @@ def preprocessing(args):
     dataset_dict['imdb']['test'].replace({
                 'sentiment': {'positive': 0, 'negative': 1}
             }, inplace=True)
+    dataset_dict['imdb']['train'].columns = ['comment', 'label']
+    dataset_dict['imdb']['test'].columns = ['comment', 'label']
 
     # 1-2) Yelp data open
     dataset_dict['yelp'] = {
@@ -149,8 +149,8 @@ def preprocessing(args):
             mean_test_len.append(sum([len(x) for x in dataset_dict[data]['test'][col]]) / test_len)
         max_train_len = max(max_train_len)
         max_test_len = max(max_test_len)
-        mean_train_len = sum(mean_train_len) / len(col_list)
-        mean_test_len = sum(mean_test_len) / len(col_list)
+        mean_train_len = round(sum(mean_train_len) / len(col_list), 3)
+        mean_test_len = round(sum(mean_test_len) / len(col_list), 3)
 
         print(f'--- {data} Dataset ---')
         print(f'Train data max length => comment: {max_train_len}')
@@ -160,7 +160,7 @@ def preprocessing(args):
         print()
 
     # 2) Training pikcle saving
-    with open(os.path.join(args.preprocess_path, 'augmented_processed.pkl'), 'wb') as f:
+    with open(os.path.join(args.preprocess_path, 'processed.pkl'), 'wb') as f:
         pickle.dump(dataset_dict, f)
 
     write_log(logger, f'Done! ; {round((time.time()-start_time)/60, 3)}min spend')

@@ -27,7 +27,7 @@ def augmenting(args):
 
     # 1) Data open
     print('Data Load & Setting!')
-    with open(os.path.join(args.preprocess_path, 'processed.pkl'), 'rb') as f:
+    with open(os.path.join(args.preprocess_path, 'augmented_processed.pkl'), 'rb') as f:
         data_ = pickle.load(f)
         train_comment_indices = data_['train_comment_indices']
         train_label = data_['train_label']
