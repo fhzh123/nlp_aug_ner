@@ -11,23 +11,6 @@ from transformers import BertTokenizer
 # Import custom modules
 from utils import encoding_text, TqdmLoggingHandler, write_log
 
-def encoding_text(list_x, tokenizer, max_len):
-
-    emojis = ''.join(emoji.UNICODE_EMOJI.keys())
-    pattern = re.compile(r'<[^>]+>')
-
-    def clean(x):
-        x = pattern.sub(' ', x)
-        x = x.strip()
-        return x
-
-    encoded_text_list = list_x.map(lambda x: tokenizer.encode(
-        clean(str(x)),
-        max_length=max_len,
-        truncation=True
-    ))
-    return encoded_text_list
-
 def preprocessing(args):
 
     start_time = time.time()
